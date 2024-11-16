@@ -11,7 +11,7 @@
             font-family: Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             background-color: #f5f5f5;
         }
 
@@ -21,7 +21,7 @@
             gap: 10px;
             overflow-x: auto;
             padding: 10px 0;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .date-button {
@@ -52,7 +52,6 @@
         .food-input-container {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
             align-items: center;
         }
 
@@ -139,8 +138,13 @@
 
         .clear-button {
             display: block;
-            margin: 20px auto;
             background: #ef4444;
+            color: white;
+        }
+
+        .next-day-button {
+            display: block;
+            background: #2563eb;
             color: white;
         }
 
@@ -197,10 +201,19 @@
         <div id="mealsGrid" class="meals-grid"></div>
     </div>
 
-    <!-- Clear data button -->
-    <button onclick="clearAllData()" class="button clear-button">
-        Clear All Data
-    </button>
+    <!-- Action buttons container -->
+    <div style="display: flex; justify-content: space-between;">
+
+        <!-- Clear data button -->
+        <button onclick="clearAllData()" class="button clear-button">
+            Clear All Data
+        </button>
+
+        <!-- Next day button -->
+        <button onclick="goToNextDay()" class="button next-day-button">
+            Next Day
+        </button>
+    </div>
 
     <script>
         let foods = [];
@@ -361,6 +374,14 @@
             selectedDate = date;
             renderDateButtons();
             renderMeals();
+        }
+
+        // Go to the next day
+        function goToNextDay() {
+            const currentIndex = dates.findIndex(date => date.date === selectedDate);
+            if (currentIndex < dates.length - 1) {
+                selectDate(dates[currentIndex + 1].date);
+            }
         }
 
         // Add food to meal

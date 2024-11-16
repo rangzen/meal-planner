@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Planner</title>
+    <style>
+        /* Base styles */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        /* Date buttons */
+        .dates-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .date-button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .date-button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Food input area */
+        .food-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .food-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .cooking-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        /* Food list */
+        .food-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .food-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f3f4f6;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Meals grid */
+        .meals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .meal-container {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .meal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .meal-select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 150px;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .add-button {
+            background: #2563eb;
+            color: white;
+        }
+
+        .remove-button {
+            background: none;
+            color: #ef4444;
+            padding: 2px;
+        }
+
+        .clear-button {
+            display: block;
+            margin: 20px auto;
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Cooking indicators */
+        .requires-cooking {
+            background: #fee2e2;
+        }
+
+        .cooking-indicator {
+            color: #ef4444;
+        }
+
+        .food-option-cooking {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Date selection buttons -->
+    <div id="dateButtons" class="dates-container"></div>
+
+    <!-- Food input card -->
+    <div class="card">
+        <div class="food-input-container">
+            <input
+                type="text"
+                id="foodInput"
+                class="food-input"
+                placeholder="Enter food item"
+            >
+            <label class="cooking-checkbox">
+                <input type="checkbox" id="cookingCheckbox">
+                Requires Cooking
+            </label>
+            <button onclick="addFood()" class="button add-button">Add</button>
+        </div>
+        <div id="foodList" class="food-list"></div>
+    </div>
+
+    <!-- Meals card -->
+    <div class="card">
+        <div id="mealsGrid" class="meals-grid"></div>
+    </div>
+
+    <!-- Clear data button -->
+    <button onclick="clearAllData()" class="button clear-button">
+        Clear All Data
+    </button>
+
+    <script>
+        let foods = [];
+        let mealsByDate = {};
+        let selectedDate = '';
+        let dates = [];
+
+        // Initialize dates
+        function initializeDates() {
+            const today = new Date();
+            dates = [];
+            for (let i = 0; i < 8; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                dates.push({
+                    date: date.toISOString().split('T')[0],
+                    display: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                });
+            }
+            selectedDate = dates[0].date;
+        }
+
+        // Initialize empty meals for a date
+        function getEmptyMeals() {
+            return {
+                breakfast: { id: 'breakfast', name: 'Breakfast', foods: [] },
+                lunch: { id: 'lunch', name: 'Lunch', foods: [] },
+                dinner: { id: 'dinner', name: 'Dinner', foods: [] }
+            };
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const savedFoods = localStorage.getItem('mealPlannerFoods');
+            foods = savedFoods ? JSON.parse(savedFoods) : [];
+
+            const savedMealsByDate = localStorage.getItem('mealPlannerMealsByDate');
+            mealsByDate = savedMealsByDate ? JSON.parse(savedMealsByDate) : {};
+
+            // Ensure all dates have meal structures
+            dates.forEach(({ date }) => {
+                if (!mealsByDate[date]) {
+                    mealsByDate[date] = getEmptyMeals();
+                }
+            });
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('mealPlannerFoods', JSON.stringify(foods));
+            localStorage.setItem('mealPlannerMealsByDate', JSON.stringify(mealsByDate));
+        }
+
+        // Render date buttons
+        function renderDateButtons() {
+            const container = document.getElementById('dateButtons');
+            container.innerHTML = dates.map(({ date, display }) => `
+                <button
+                    onclick="selectDate('${date}')"
+                    class="date-button ${date === selectedDate ? 'active' : ''}"
+                >
+                    ${display}
+                </button>
+            `).join('');
+        }
+
+        // Render food list
+        function renderFoodList() {
+            const container = document.getElementById('foodList');
+            container.innerHTML = foods.map(food => `
+                <div class="food-item">
+                    <span>${food.name} ${food.requiresCooking ? '🔥' : ''}</span>
+                    <button onclick="removeFood(${food.id})" class="remove-button">✕</button>
+                </div>
+            `).join('');
+        }
+
+        // Render meals
+        function renderMeals() {
+            const container = document.getElementById('mealsGrid');
+            const meals = mealsByDate[selectedDate] || getEmptyMeals();
+
+            container.innerHTML = Object.values(meals).map(meal => `
+                <div class="meal-container">
+                    <div class="meal-header">
+                        <h3>${meal.name}</h3>
+                        <select
+                            onchange="addFoodToMeal('${meal.id}', this.value)"
+                            class="meal-select"
+                        >
+                            <option value="">Add food...</option>
+                            ${foods.map(food => `
+                                <option
+                                    value="${food.id}"
+                                    class="${food.requiresCooking ? 'food-option-cooking' : ''}"
+                                >
+                                    ${food.name} ${food.requiresCooking ? '🔥' : ''}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div class="meal-food-list">
+                        ${meal.foods.map(foodId => {
+                            const food = foods.find(f => f.id === foodId);
+                            return food ? `
+                                <div class="meal-food-item ${food.requiresCooking ? 'requires-cooking' : ''}">
+                                    <span>${food.name} ${food.requiresCooking ? '🔥' : ''}</span>
+                                    <button
+                                        onclick="removeFoodFromMeal('${meal.id}', ${foodId})"
+                                        class="remove-button"
+                                    >✕</button>
+                                </div>
+                            ` : '';
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add new food
+        function addFood() {
+            const input = document.getElementById('foodInput');
+            const requiresCooking = document.getElementById('cookingCheckbox').checked;
+            const name = input.value.trim();
+
+            if (name) {
+                foods.push({
+                    id: Date.now(),
+                    name: name,
+                    requiresCooking: requiresCooking
+                });
+                input.value = '';
+                document.getElementById('cookingCheckbox').checked = false;
+                saveData();
+                renderFoodList();
+                renderMeals();
+            }
+        }
+
+        // Remove food
+        function removeFood(foodId) {
+            foods = foods.filter(food => food.id !== foodId);
+
+            // Remove from all meals
+            Object.keys(mealsByDate).forEach(date => {
+                Object.keys(mealsByDate[date]).forEach(mealId => {
+                    mealsByDate[date][mealId].foods =
+                        mealsByDate[date][mealId].foods.filter(id => id !== foodId);
+                });
+            });
+
+            saveData();
+            renderFoodList();
+            renderMeals();
+        }
+
+        // Select date
+        function selectDate(date) {
+            selectedDate = date;
+            renderDateButtons();
+            renderMeals();
+        }
+
+        // Add food to meal
+        function addFoodToMeal(mealId, foodId) {
+            foodId = Number(foodId);
+            if (foodId && mealsByDate[selectedDate][mealId]) {
+                if (!mealsByDate[selectedDate][mealId].foods.includes(foodId)) {
+                    mealsByDate[selectedDate][mealId].foods.push(foodId);
+                    saveData();
+                    renderMeals();
+                }
+            }
+        }
+
+        // Remove food from meal
+        function removeFoodFromMeal(mealId, foodId) {
+            if (mealsByDate[selectedDate][mealId]) {
+                mealsByDate[selectedDate][mealId].foods =
+                    mealsByDate[selectedDate][mealId].foods.filter(id => id !== foodId);
+                saveData();
+                renderMeals();
+            }
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data?')) {
+                localStorage.clear();
+                foods = [];
+                mealsByDate = {};
+                dates.forEach(({ date }) => {
+                    mealsByDate[date] = getEmptyMeals();
+                });
+                document.getElementById('foodInput').value = '';
+                document.getElementById('cookingCheckbox').checked = false;
+                selectDate(dates[0].date);
+                saveData();
+                renderFoodList();
+                renderMeals();
+            }
+        }
+
+        // Enter key handler for food input
+        document.getElementById('foodInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addFood();
+            }
+        });
+
+        // Initialize the app
+        initializeDates();
+        loadData();
+        renderDateButtons();
+        renderFoodList();
+        renderMeals();
+    </script>
+</body>
+</html>

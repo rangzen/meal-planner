@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,7 +45,7 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         /* Food input area */
@@ -157,6 +158,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Date selection buttons -->
     <div id="dateButtons" class="dates-container"></div>
@@ -164,18 +166,27 @@
     <!-- Food input card -->
     <div class="card">
         <div class="food-input-container">
-            <input
-                type="text"
-                id="foodInput"
-                class="food-input"
-                placeholder="Enter food item"
-            >
-            <label class="cooking-checkbox">
+            <input type="text" id="foodInput" class="food-input" placeholder="Enter food item">
+            <div class="cooking-checkbox">
                 <input type="checkbox" id="cookingCheckbox">
                 Requires Cooking
-            </label>
+            </div>
             <button onclick="addFood()" class="button add-button">Add</button>
         </div>
+        <style>
+            @media (max-width: 600px) {
+                .food-input-container {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .cooking-checkbox,
+                .button.add-button {
+                    width: 100%;
+                    text-align: center;
+                }
+            }
+        </style>
         <div id="foodList" class="food-list"></div>
     </div>
 
@@ -290,8 +301,8 @@
                     </div>
                     <div class="meal-food-list">
                         ${meal.foods.map(foodId => {
-                            const food = foods.find(f => f.id === foodId);
-                            return food ? `
+                const food = foods.find(f => f.id === foodId);
+                return food ? `
                                 <div class="meal-food-item ${food.requiresCooking ? 'requires-cooking' : ''}">
                                     <span>${food.name} ${food.requiresCooking ? '🔥' : ''}</span>
                                     <button
@@ -300,7 +311,7 @@
                                     >✕</button>
                                 </div>
                             ` : '';
-                        }).join('')}
+            }).join('')}
                     </div>
                 </div>
             `).join('');
@@ -391,7 +402,7 @@
         }
 
         // Enter key handler for food input
-        document.getElementById('foodInput').addEventListener('keypress', function(e) {
+        document.getElementById('foodInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 addFood();
             }
@@ -405,4 +416,5 @@
         renderMeals();
     </script>
 </body>
+
 </html>

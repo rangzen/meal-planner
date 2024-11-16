@@ -169,7 +169,9 @@
             <input type="text" id="foodInput" class="food-input" placeholder="Enter food item">
             <div class="cooking-checkbox">
                 <input type="checkbox" id="cookingCheckbox">
-                Requires Cooking
+                <div onclick="document.getElementById('cookingCheckbox').click()">
+                    Requires Cooking
+                </div>
             </div>
             <button onclick="addFood()" class="button add-button">Add</button>
         </div>
